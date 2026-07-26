@@ -5,11 +5,16 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig(async ({ mode }) => {
   const plugins = [react(), tailwindcss()];
-  try {
-    // @ts-ignore
-    const m = await import('./.vite-source-tags.js');
-    plugins.push(m.sourceTags());
-  } catch {}
+
+  // Only enable source-tags plugin in development so production builds don't
+  // require the @babel/* packages at build time.
+  if (mode === 'development') {
+    try {
+      // @ts-ignore
+      const m = await import('./.vite-source-tags.js');
+      plugins.push(m.sourceTags());
+    } catch {}
+  }
 
   const env = loadEnv(mode, process.cwd(), ['VITE_', 'NEXT_PUBLIC_']);
   const processEnvDefines: Record<string, string> = {};
