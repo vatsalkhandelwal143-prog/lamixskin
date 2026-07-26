@@ -26,5 +26,24 @@ export default defineConfig(async ({ mode }) => {
     plugins,
     envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
     define: processEnvDefines,
+
+    // Reduce initial chunk size by splitting vendor libraries into manual chunks
+    // and increase the warning threshold slightly so Vite doesn't spam the log.
+    build: {
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom')) return 'vendor-react'
+              if (id.includes('framer-motion')) return 'vendor-framer'
+              if (id.includes('@supabase')) return 'vendor-supabase'
+              if (id.includes('lucide-react')) return 'vendor-icons'
+              return 'vendor'
+            }
+          }
+        }
+      }
+    }
   };
 })
