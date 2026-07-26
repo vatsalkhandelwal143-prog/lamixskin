@@ -27,18 +27,27 @@ export default defineConfig(async ({ mode }) => {
     envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
     define: processEnvDefines,
 
-    // Reduce initial chunk size by splitting vendor libraries into manual chunks
-    // and increase the warning threshold slightly so Vite doesn't spam the log.
+    // More aggressive vendor-splitting to reduce the size of the main chunk.
+    // Also increase warning threshold slightly so Vite only warns for very large bundles.
     build: {
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 1500,
       rollupOptions: {
         output: {
           manualChunks(id: string) {
             if (id.includes('node_modules')) {
+              // Core React libs
               if (id.includes('react') || id.includes('react-dom')) return 'vendor-react'
+              // Routing
+              if (id.includes('react-router-dom')) return 'vendor-router'
+              // Motion/animation
               if (id.includes('framer-motion')) return 'vendor-framer'
+              // Supabase
               if (id.includes('@supabase')) return 'vendor-supabase'
+              // Icons / UI
               if (id.includes('lucide-react')) return 'vendor-icons'
+              // Tailwind runtime helpers (if present)
+              if (id.includes('tailwindcss')) return 'vendor-tailwind'
+              // Everything else from node_modules
               return 'vendor'
             }
           }
